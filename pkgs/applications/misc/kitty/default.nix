@@ -12,8 +12,6 @@
   libcanberra,
   libicns,
   libpng,
-  librsvg,
-  optipng,
   python3,
   zlib,
 }:
@@ -55,8 +53,6 @@ buildPythonApplication rec {
   ] ++ stdenv.lib.optionals stdenv.isDarwin [
     imagemagick
     libicns  # For the png2icns tool.
-    librsvg
-    optipng
   ];
 
   propagatedBuildInputs = stdenv.lib.optional stdenv.isLinux libGL;
@@ -74,9 +70,11 @@ buildPythonApplication rec {
     })
   ] ++ stdenv.lib.optionals stdenv.isDarwin [
     ./no-lto.patch
-    ./no-werror.patch
     ./png2icns.patch
   ];
+
+  # Causes build failure due to warning
+  hardeningDisable = stdenv.lib.optional stdenv.isDarwin "strictoverflow";
 
   buildPhase = if stdenv.isDarwin then ''
     ${python.interpreter} setup.py kitty.app --update-check-interval=0
@@ -123,6 +121,6 @@ buildPythonApplication rec {
     description = "A modern, hackable, featureful, OpenGL based terminal emulator";
     license = licenses.gpl3;
     platforms = platforms.darwin ++ platforms.linux;
-    maintainers = with maintainers; [ tex rvolosatovs ma27 ];
+    maintainers = with maintainers; [ tex rvolosatovs ma27 Luflosi ];
   };
 }
