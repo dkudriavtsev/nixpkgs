@@ -15,11 +15,11 @@
 
 buildPythonPackage rec {
   pname = "junos-eznc";
-  version = "2.3.1";
+  version = "2.5.1";
 
   src = fetchPypi {
     inherit pname version;
-    sha256 = "0f8c4763fe2281979bc00350b93d510368992dbae0dae4fea0bafee5904a7e68";
+    sha256 = "0e3a1e74b9254b4832a6cdbf8e6f26f9a269f574cb8cf2dd292dc131e0f4b245";
   };
 
 
@@ -34,7 +34,7 @@ buildPythonPackage rec {
   '';
 
   meta = with stdenv.lib; {
-    homepage = http://www.github.com/Juniper/py-junos-eznc;
+    homepage = "http://www.github.com/Juniper/py-junos-eznc";
     description = "Junos 'EZ' automation for non-programmers";
     license = licenses.asl20;
     maintainers = with maintainers; [ xnaveira ];

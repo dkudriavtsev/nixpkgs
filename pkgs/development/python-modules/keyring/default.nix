@@ -6,19 +6,23 @@
 , pytest-flake8
 , secretstorage
 , setuptools_scm
+, toml
 }:
 
 buildPythonPackage rec {
   pname = "keyring";
-  version = "20.0.1";
+  version = "21.3.0";
   disabled = isPy27;
 
   src = fetchPypi {
     inherit pname version;
-    sha256 = "963bfa7f090269d30bdc5e25589e5fd9dad2cf2a7c6f176a7f2386910e5d0d8d";
+    sha256 = "22df6abfed49912fc560806030051067fba9f0069cffa79da72899aeea4ccbd5";
   };
 
-  nativeBuildInputs = [ setuptools_scm ];
+  nativeBuildInputs = [
+    setuptools_scm
+    toml
+  ];
 
   checkInputs = [ pytest pytest-flake8 ];
 

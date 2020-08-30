@@ -21,6 +21,7 @@
 , tables
 , xlwt
 , runtimeShell
+, isPy38
 , libcxx ? null
 }:
 
@@ -30,11 +31,11 @@ let
 
 in buildPythonPackage rec {
   pname = "pandas";
-  version = "1.0.1";
+  version = "1.1.0";
 
   src = fetchPypi {
     inherit pname version;
-    sha256 = "3c07765308f091d81b6735d4f2242bb43c332cc3461cae60543df6b10967fe27";
+    sha256 = "b39508562ad0bb3f384b0db24da7d68a2608b9ddc85b1d931ccaaa92d5e45273";
   };
 
   checkInputs = [ pytest glibcLocales moto hypothesis ];
@@ -57,6 +58,10 @@ in buildPythonPackage rec {
     xlwt
   ];
 
+  # doesn't work with -Werror,-Wunused-command-line-argument
+  # https://github.com/NixOS/nixpkgs/issues/39687
+  hardeningDisable = optional stdenv.cc.isClang "strictoverflow";
+
   # For OSX, we need to add a dependency on libcxx, which provides
   # `complex.h` and other libraries that pandas depends on to build.
   postPatch = optionalString isDarwin ''
@@ -66,6 +71,14 @@ in buildPythonPackage rec {
       --replace "['pandas/src/klib', 'pandas/src']" \
                 "['pandas/src/klib', 'pandas/src', '$cpp_sdk']"
   '';
+
+  # Parallel Cythonization is broken in Python 3.8 on Darwin. Fixed in the next
+  # release. https://github.com/pandas-dev/pandas/pull/30862
+  setupPyBuildFlags = optionals (!(isPy38 && isDarwin)) [
+    # As suggested by
+    # https://pandas.pydata.org/pandas-docs/stable/development/contributing.html#creating-a-python-environment
+    "--parallel=$NIX_BUILD_CORES"
+  ];
 
 
   disabledTests = stdenv.lib.concatMapStringsSep " and " (s: "not " + s) ([
@@ -89,6 +102,9 @@ in buildPythonPackage rec {
     "order_without_freq"
     # tries to import from pandas.tests post install
     "util_in_top_level"
+    # Fails with 1.0.5
+    "test_constructor_list_frames"
+    "test_constructor_with_embedded_frames"
   ] ++ optionals isDarwin [
     "test_locale"
     "test_clipboard"
@@ -116,7 +132,7 @@ in buildPythonPackage rec {
     # https://github.com/pandas-dev/pandas/issues/14866
     # pandas devs are no longer testing i686 so safer to assume it's broken
     broken = stdenv.isi686;
-    homepage = https://pandas.pydata.org/;
+    homepage = "https://pandas.pydata.org/";
     description = "Python Data Analysis Library";
     license = stdenv.lib.licenses.bsd3;
     maintainers = with stdenv.lib.maintainers; [ raskin fridh knedlsepp ];

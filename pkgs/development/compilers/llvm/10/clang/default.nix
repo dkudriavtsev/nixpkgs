@@ -1,7 +1,6 @@
 { stdenv, fetch, cmake, libxml2, llvm, version, clang-tools-extra_src, python3, lld
 , fixDarwinDylibNames
 , enableManpages ? false
-, enablePolly ? false # TODO: get this info from llvm (passthru?)
 }:
 
 let
@@ -9,7 +8,7 @@ let
     pname = "clang";
     inherit version;
 
-    src = fetch "clang" "1npwv0j6812q9jar79bb5m2j4lmvp11680in45nlma8czrs52w0v";
+    src = fetch "clang" "091bvcny2lh32zy8f3m9viayyhb2zannrndni7325rl85cwgr6pr";
 
     unpackPhase = ''
       unpackFile $src
@@ -28,15 +27,13 @@ let
     cmakeFlags = [
       "-DCMAKE_CXX_FLAGS=-std=c++14"
       "-DCLANGD_BUILD_XPC=OFF"
+      "-DLLVM_ENABLE_RTTI=ON"
     ] ++ stdenv.lib.optionals enableManpages [
       "-DCLANG_INCLUDE_DOCS=ON"
       "-DLLVM_ENABLE_SPHINX=ON"
       "-DSPHINX_OUTPUT_MAN=ON"
       "-DSPHINX_OUTPUT_HTML=OFF"
       "-DSPHINX_WARNINGS_AS_ERRORS=OFF"
-    ] ++ stdenv.lib.optionals enablePolly [
-      "-DWITH_POLLY=ON"
-      "-DLINK_POLLY_INTO_TOOLS=ON"
     ];
 
     patches = [
@@ -90,13 +87,11 @@ let
     passthru = {
       isClang = true;
       inherit llvm;
-    } // stdenv.lib.optionalAttrs (stdenv.targetPlatform.isLinux || (stdenv.cc.isGNU && stdenv.cc.cc ? gcc)) {
-      gcc = if stdenv.cc.isGNU then stdenv.cc.cc else stdenv.cc.cc.gcc;
     };
 
     meta = {
       description = "A c, c++, objective-c, and objective-c++ frontend for the llvm compiler";
-      homepage    = http://llvm.org/;
+      homepage    = "https://llvm.org/";
       license     = stdenv.lib.licenses.ncsa;
       platforms   = stdenv.lib.platforms.all;
     };

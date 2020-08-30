@@ -1,6 +1,6 @@
 /* TeX Live user docs
   - source: ../../../../../doc/languages-frameworks/texlive.xml
-  - current html: http://nixos.org/nixpkgs/manual/#sec-language-texlive
+  - current html: https://nixos.org/nixpkgs/manual/#sec-language-texlive
 */
 { stdenv, lib, fetchurl, runCommand, writeText, buildEnv
 , callPackage, ghostscriptX, harfbuzz, poppler_min
@@ -89,7 +89,7 @@ let
     };
 
   # create a derivation that contains an unpacked upstream TL package
-  mkPkg = { pname, tlType, version, sha512, postUnpack ? "", stripPrefix ? 1, ... }@args:
+  mkPkg = { pname, tlType, revision, version, sha512, postUnpack ? "", stripPrefix ? 1, ... }@args:
     let
       # the basename used by upstream (without ".tar.xz" suffix)
       urlName = pname + lib.optionalString (tlType != "run") ".${tlType}";
@@ -97,8 +97,15 @@ let
       fixedHash = fixedHashes.${tlName} or null; # be graceful about missing hashes
 
       urls = args.urls or (if args ? url then [ args.url ] else
-              map (up: "${up}/${urlName}.tar.xz") urlPrefixes
-            );
+        lib.concatMap
+          (up: [
+            # Only ~11% of packages in texlive 2019 have revisions, so
+            # the number of requests is nearly doubled if we lookup
+            # the name with revision
+            # "${up}/${urlName}.r${toString revision}.tar.xz"
+            "${up}/${urlName}.tar.xz" # TODO To be removed for texlive 2020?
+          ])
+          urlPrefixes);
 
       # The tarballs on CTAN mirrors for the current release are constantly
       # receiving updates, so we can't use those directly. Stable snapshots
@@ -106,15 +113,12 @@ let
       # should be switching to the tlnet-final versions
       # (https://tug.org/historic/).
       urlPrefixes = args.urlPrefixes or [
-        # Snapshots hosted by one of the texlive release managers
-        https://texlive.info/tlnet-archive/2019/10/19/tlnet/archive
+        # tlnet-final snapshot
+        "http://ftp.math.utah.edu/pub/tex/historic/systems/texlive/2019/tlnet-final/archive"
+        "ftp://tug.org/texlive/historic/2019/tlnet-final/archive"
 
-        # Mirror hosted by @veprbl
-        http://146.185.144.154/texlive-2019
-
-        # TODO: Upgrade to the final snapshot of the packages before 20.03
-        #http://ftp.math.utah.edu/pub/tex/historic/systems/texlive/2019/tlnet-final/archive
-        #ftp://tug.org/texlive/historic/2019/tlnet-final/archive
+        # Daily snapshots hosted by one of the texlive release managers
+        #https://texlive.info/tlnet-archive/2019/10/19/tlnet/archive
       ];
 
       src = fetchurl { inherit urls sha512; };
@@ -174,7 +178,7 @@ in
             description = "TeX Live environment for ${pname}";
             platforms = lib.platforms.all;
             hydraPlatforms = lib.optionals
-              (lib.elem pname ["scheme-small" "scheme-basic"]) platforms;
+              (!lib.elem pname ["scheme-infraonly"]) platforms;
             maintainers = with lib.maintainers;  [ veprbl ];
           }
           (combine {

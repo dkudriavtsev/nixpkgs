@@ -1,7 +1,7 @@
-{ config, stdenv, lib, fetchurl, boost, cmake, ffmpeg, gettext, glew
+{ config, stdenv, lib, fetchurl, boost, cmake, ffmpeg_3, gettext, glew
 , ilmbase, libXi, libX11, libXext, libXrender
 , libjpeg, libpng, libsamplerate, libsndfile
-, libtiff, libGLU, libGL, openal, opencolorio, openexr, openimageio2, openjpeg, python3Packages
+, libtiff, libGLU, libGL, openal, opencolorio, openexr, openimagedenoise, openimageio2, openjpeg, python3Packages
 , openvdb, libXxf86vm, tbb, alembic
 , zlib, fftw, opensubdiv, freetype, jemalloc, ocl-icd, addOpenGLRunpath
 , jackaudioSupport ? false, libjack2
@@ -17,20 +17,20 @@ let python = python3Packages.python; in
 
 stdenv.mkDerivation rec {
   pname = "blender";
-  version = "2.82";
+  version = "2.83.5";
 
   src = fetchurl {
     url = "https://download.blender.org/source/${pname}-${version}.tar.xz";
-    sha256 = "0rgw8nilvn6k6r7p28y2l1rwpami1cc8xz473jaahn7wa4ndyah0";
+    sha256 = "0xyawly00a59hfdb6b7va84k5fhcv2mxnzd77vs22bzi9y7sap43";
   };
 
   patches = lib.optional stdenv.isDarwin ./darwin.patch;
 
   nativeBuildInputs = [ cmake ] ++ optional cudaSupport addOpenGLRunpath;
   buildInputs =
-    [ boost ffmpeg gettext glew ilmbase
+    [ boost ffmpeg_3 gettext glew ilmbase
       freetype libjpeg libpng libsamplerate libsndfile libtiff
-      opencolorio openexr openimageio2 openjpeg python zlib fftw jemalloc
+      opencolorio openexr openimagedenoise openimageio2 openjpeg python zlib fftw jemalloc
       alembic
       (opensubdiv.override { inherit cudaSupport; })
       tbb
@@ -57,6 +57,10 @@ stdenv.mkDerivation rec {
         --replace '${"$"}{LIBDIR}/python' \
                   '${python}'
       substituteInPlace build_files/cmake/platform/platform_apple.cmake \
+        --replace 'set(PYTHON_VERSION 3.7)' \
+                  'set(PYTHON_VERSION ${python.pythonVersion})' \
+        --replace '${"$"}{PYTHON_VERSION}m' \
+                  '${"$"}{PYTHON_VERSION}' \
         --replace '${"$"}{LIBDIR}/python' \
                   '${python}' \
         --replace '${"$"}{LIBDIR}/opencollada' \
@@ -86,9 +90,9 @@ stdenv.mkDerivation rec {
       "-DWITH_SDL=OFF"
       "-DWITH_OPENCOLORIO=ON"
       "-DWITH_OPENSUBDIV=ON"
-      "-DPYTHON_LIBRARY=${python.libPrefix}m"
+      "-DPYTHON_LIBRARY=${python.libPrefix}"
       "-DPYTHON_LIBPATH=${python}/lib"
-      "-DPYTHON_INCLUDE_DIR=${python}/include/${python.libPrefix}m"
+      "-DPYTHON_INCLUDE_DIR=${python}/include/${python.libPrefix}"
       "-DPYTHON_VERSION=${python.pythonVersion}"
       "-DWITH_PYTHON_INSTALL=OFF"
       "-DWITH_PYTHON_INSTALL_NUMPY=OFF"
@@ -122,7 +126,8 @@ stdenv.mkDerivation rec {
   # --python-expr is used to workaround https://developer.blender.org/T74304
   postInstall = ''
     wrapProgram $blenderExecutable \
-      --add-flags '--python-expr "import sys; sys.path.append(\"${python3Packages.numpy}/${python.sitePackages}\")"'
+      --prefix PYTHONPATH : ${python3Packages.numpy}/${python.sitePackages} \
+      --add-flags '--python-use-system-env'
   '';
 
   # Set RUNPATH so that libcuda and libnvrtc in /run/opengl-driver(-32)/lib can be
@@ -136,11 +141,11 @@ stdenv.mkDerivation rec {
 
   meta = with stdenv.lib; {
     description = "3D Creation/Animation/Publishing System";
-    homepage = https://www.blender.org;
+    homepage = "https://www.blender.org";
     # They comment two licenses: GPLv2 and Blender License, but they
     # say: "We've decided to cancel the BL offering for an indefinite period."
     license = licenses.gpl2Plus;
     platforms = [ "x86_64-linux" "x86_64-darwin" ];
-    maintainers = [ maintainers.goibhniu ];
+    maintainers = with maintainers; [ goibhniu veprbl ];
   };
 }

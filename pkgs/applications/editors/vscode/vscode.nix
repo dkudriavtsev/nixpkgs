@@ -11,15 +11,17 @@ let
   archive_fmt = if system == "x86_64-darwin" then "zip" else "tar.gz";
 
   sha256 = {
-    x86_64-linux = "0c067qp3aa5kqya3y8pzc9cvyzsafizhgjp9dsibnfl08lvz9hbs";
-    x86_64-darwin = "0vi94nk8p3vp30nx60mwqcmfqbrmrqwvfdjbah0zm480dcjzz7dv";
+    x86_64-linux = "1i4vq8a81jgshn9iqkj8rp0yqihq2bjim27c8sh4vl9d6a8a6vcr";
+    x86_64-darwin = "090xj8pq3fdn7dcfrzvgvx906k6gs2xm04xkymz8vpm3a4rq1svn";
   }.${system};
 in
   callPackage ./generic.nix rec {
     # The update script doesn't correctly change the hash for darwin, so please:
     # nixpkgs-update: no auto update
 
-    version = "1.42.1";
+    # Please backport all compatible updates to the stable release.
+    # This is important for the extension ecosystem.
+    version = "1.48.2";
     pname = "vscode";
 
     executableName = "code" + lib.optionalString isInsiders "-insiders";
@@ -46,8 +48,8 @@ in
         and code refactoring. It is also customizable, so users can change the
         editor's theme, keyboard shortcuts, and preferences
       '';
-      homepage = https://code.visualstudio.com/;
-      downloadPage = https://code.visualstudio.com/Updates;
+      homepage = "https://code.visualstudio.com/";
+      downloadPage = "https://code.visualstudio.com/Updates";
       license = licenses.unfree;
       maintainers = with maintainers; [ eadwu synthetica ];
       platforms = [ "x86_64-linux" "x86_64-darwin" ];

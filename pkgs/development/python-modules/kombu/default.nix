@@ -1,19 +1,22 @@
 { lib, buildPythonPackage, fetchPypi
 , amqp
+, botocore
 , case
 , Pyro4
 , pytest
 , pytz
 , sqlalchemy
+, importlib-metadata
+, pythonOlder
 }:
 
 buildPythonPackage rec {
   pname = "kombu";
-  version = "4.6.7";
+  version = "4.6.11";
 
   src = fetchPypi {
     inherit pname version;
-    sha256 = "67b32ccb6fea030f8799f8fd50dd08e03a4b99464ebc4952d71d8747b1a52ad1";
+    sha256 = "ca1b45faac8c0b18493d02a8571792f3c40291cf2bcf1f55afed3d8f3aa7ba74";
   };
 
   postPatch = ''
@@ -23,9 +26,13 @@ buildPythonPackage rec {
       --replace "amqp==2.5.1" "amqp~=2.5"
   '';
 
-  propagatedBuildInputs = [ amqp ];
+  propagatedBuildInputs = [
+    amqp
+  ] ++ lib.optionals (pythonOlder "3.8") [
+    importlib-metadata
+  ];
 
-  checkInputs = [ pytest case pytz Pyro4 sqlalchemy ];
+  checkInputs = [ botocore pytest case pytz Pyro4 sqlalchemy ];
   # test_redis requires fakeredis, which isn't trivial to package
   checkPhase = ''
     pytest --ignore t/unit/transport/test_redis.py
@@ -33,7 +40,7 @@ buildPythonPackage rec {
 
   meta = with lib; {
     description = "Messaging library for Python";
-    homepage    = https://github.com/celery/kombu;
+    homepage    = "https://github.com/celery/kombu";
     license     = licenses.bsd3;
   };
 }

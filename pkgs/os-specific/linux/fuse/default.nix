@@ -11,7 +11,7 @@ in {
   };
 
   fuse_3 = mkFuse {
-    version = "3.9.0";
-    sha256Hash = "00yppzmv15jqjy3wq5ki9d49jl6bfxrlwr5sfz50ihr40d6dgx9p";
+    version = "3.9.4";
+    sha256Hash = "1j11niqw3p94yd6mfdrkdra0nic8a38fc179y5h9yz81q39m2f3b";
   };
 }

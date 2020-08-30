@@ -10,11 +10,11 @@
 
 buildPythonPackage rec {
   pname = "google-cloud-asset";
-  version = "0.6.0";
+  version = "2.0.0";
 
   src = fetchPypi {
     inherit pname version;
-    sha256 = "35eeb50c101968b4b5eecc840002a6f83af6789b6a947f27f0b2787e30cc1835";
+    sha256 = "fd4c0f7f61a8a1c5907cd6cc27a028b16236bf3d982ff412df0d2c981cef5ae5";
   };
 
   checkInputs = [ pytest mock ];
@@ -26,7 +26,7 @@ buildPythonPackage rec {
 
   meta = with stdenv.lib; {
     description = "Cloud Asset API API client library";
-    homepage = https://github.com/GoogleCloudPlatform/google-cloud-python;
+    homepage = "https://github.com/GoogleCloudPlatform/google-cloud-python";
     license = licenses.asl20;
     maintainers = [ maintainers.costrouc ];
   };

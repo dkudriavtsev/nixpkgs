@@ -6,11 +6,11 @@
 
 buildPythonPackage rec {
   pname = "braintree";
-  version = "3.59.0";
+  version = "4.3.0";
 
   src = fetchPypi {
     inherit pname version;
-    sha256 = "08g8qlnsp9wd2zbf6x3npp1425g7ih4lyljzvybd3vazsbqlw4yq";
+    sha256 = "d2b5ead45dbfe98b6099d387c7f12b7d2994ae0efb60679e6bb0929a06027e16";
   };
 
   propagatedBuildInputs = [ requests ];
@@ -20,7 +20,7 @@ buildPythonPackage rec {
 
   meta = with lib; {
     description = "Python library for integration with Braintree";
-    homepage = https://github.com/braintree/braintree_python;
+    homepage = "https://github.com/braintree/braintree_python";
     license = licenses.mit;
     maintainers = [ maintainers.ivegotasthma ];
   };

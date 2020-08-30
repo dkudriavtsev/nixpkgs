@@ -3,7 +3,7 @@ pkgconfig, libtool,
 gtk2,
 libxml2,
 libxslt,
-libusb,
+libusb-compat-0_1,
 sane-backends,
 rpm, cpio,
 getopt,
@@ -39,7 +39,7 @@ let plugins = {
         "https://download2.ebz.epson.net/iscan/plugin/perfection-v330/rpm/x64/iscan-perfection-v330-bundle-${version}.x64.rpm.tar.gz"
         "https://web.archive.org/web/https://download2.ebz.epson.net/iscan/plugin/perfection-v330/rpm/x64/iscan-perfection-v330-bundle-${version}.x64.rpm.tar.gz"
       ];
-      sha256 = "16iq5gmfcgkvcx5hixggxgb8lwin5gjdhnq0zabgpfqg11n2w21q";
+      sha256 = "056c04pfsf98nnknphg28l489isqb6y4l2c8g7wqhclwgj7m338i";
     };
 
     nativeBuildInputs = [ autoPatchelfHook rpm ];
@@ -69,7 +69,7 @@ let plugins = {
         "https://download2.ebz.epson.net/iscan/plugin/gt-x770/rpm/x64/iscan-gt-x770-bundle-${version}.x64.rpm.tar.gz"
         "https://web.archive.org/web/https://download2.ebz.epson.net/iscan/plugin/gt-x770/rpm/x64/iscan-gt-x770-bundle-${version}.x64.rpm.tar.gz"
       ];
-      sha256 = "1cz4z3wz216s77z185m665jcgdslil5gn4dsi118nv1fm17z3jik";
+      sha256 = "1chxdm6smv2d14pn2jl9xyd0vr42diy7vpskd3b9a61gf5h3gj03";
     };
     installPhase = ''
       cd plugins
@@ -99,7 +99,7 @@ let plugins = {
         "https://download2.ebz.epson.net/iscan/plugin/gt-f720/rpm/x64/iscan-gt-f720-bundle-${version}.x64.rpm.tar.gz"
         "https://web.archive.org/web/https://download2.ebz.epson.net/iscan/plugin/gt-f720/rpm/x64/iscan-gt-f720-bundle-${version}.x64.rpm.tar.gz"
       ];
-      sha256 = "12rivh00n9mhagy5yjl1m0bv7ypbig6brqkxm0a12xy0mjq7yv8y";
+      sha256 = "1xnbmb2rn610kqpg1x6k1cc13zlmx2f3l2xnj6809rnhg96qqn20";
     };
     installPhase = ''
       cd plugins
@@ -129,7 +129,7 @@ let plugins = {
         "https://download2.ebz.epson.net/iscan/plugin/gt-s80/rpm/x64/iscan-gt-s80-bundle-${version}.x64.rpm.tar.gz"
         "https://web.archive.org/web/https://download2.ebz.epson.net/iscan/plugin/gt-s80/rpm/x64/iscan-gt-s80-bundle-${version}.x64.rpm.tar.gz"
       ];
-      sha256 = "1ran75zsxcdci00jakngkz6p9lj4q483hjapmf80p68rzhpmdr5y";
+      sha256 = "00qfdgs03k7bbs67zjrk8hbxvlyinsmk890amp9cmpfjfzdxgg58";
     };
     installPhase = ''
       cd plugins
@@ -153,6 +153,39 @@ let plugins = {
 
     meta = common_meta // { description = "iscan esci s80 plugin for "+passthru.hw; };
   };
+  s650 = stdenv.mkDerivation rec {
+    name = "iscan-gt-s650-bundle";
+    version = "2.30.4";
+
+    src = fetchurl {
+      urls = [
+        "https://download2.ebz.epson.net/iscan/plugin/gt-s650/rpm/x64/iscan-gt-s650-bundle-${version}.x64.rpm.tar.gz"
+        "https://web.archive.org/web/https://download2.ebz.epson.net/iscan/plugin/gt-s650/rpm/x64/iscan-gt-s650-bundle-${version}.x64.rpm.tar.gz"
+      ];
+      sha256 = "0fn4lz4g0a8l301v6yv7fwl37wgwhz5y90nf681f655xxc91hqh7";
+    };
+
+    nativeBuildInputs = [ autoPatchelfHook rpm ];
+
+    installPhase = ''
+      cd plugins
+      ${rpm}/bin/rpm2cpio iscan-plugin-gt-s650-*.x86_64.rpm | ${cpio}/bin/cpio -idmv
+      mkdir $out
+      cp -r usr/share $out
+      cp -r usr/lib64 $out/lib
+      mv $out/share/iscan $out/share/esci
+      mv $out/lib/iscan $out/lib/esci
+      '';
+
+    passthru = {
+      registrationCommand = ''
+        $registry --add interpreter usb 0x04b8 0x013c "$plugin/lib/esci/libiscan-plugin-gt-s650 $plugin/share/esci/esfw010c.bin"
+        $registry --add interpreter usb 0x04b8 0x013d "$plugin/lib/esci/libiscan-plugin-gt-s650 $plugin/share/esci/esfw010c.bin"
+        '';
+      hw = "GT-S650, Perfection V19, Perfection V39";
+    };
+    meta = common_meta // { description = "iscan GT-S650 for "+passthru.hw; };
+  };
   network = stdenv.mkDerivation rec {
     pname = "iscan-nt-bundle";
     # for the version, look for the driver of XP-750 in the search page
@@ -166,7 +199,7 @@ let plugins = {
         "https://download2.ebz.epson.net/iscan/general/rpm/x64/iscan-bundle-${version}.x64.rpm.tar.gz"
         "https://web.archive.org/web/https://download2.ebz.epson.net/iscan/general/rpm/x64/iscan-bundle-${version}.x64.rpm.tar.gz"
       ];
-      sha256 = "1l0y4dy88y91jdq66pxrxqmiwsxwy0rd7x4bh0cw08r4iyhjqprz";
+      sha256 = "0jssigsgkxb9i7qa7db291a1gbvwl795i4ahvb7bnqp33czkj85k";
     };
     installPhase = ''
       cd plugins
@@ -230,7 +263,7 @@ stdenv.mkDerivation rec {
     gtk2
     libxml2
     libtool
-    libusb
+    libusb-compat-0_1
     sane-backends
     makeWrapper
   ];
@@ -244,6 +277,7 @@ stdenv.mkDerivation rec {
       sha256 = "04y70qjd220dpyh771fiq50lha16pms98mfigwjczdfmx6kpj1jd";
     })
     ./firmware_location.patch
+    ./sscanf.patch
     ];
   patchFlags = [ "-p0" ];
 
@@ -277,6 +311,6 @@ stdenv.mkDerivation rec {
       Supported hardware: at least :
     '' +
     stdenv.lib.concatStringsSep ", " (stdenv.lib.mapAttrsToList (name: value: value.passthru.hw) plugins);
-    maintainers = with stdenv.lib.maintainers; [ symphorien ];
+    maintainers = with stdenv.lib.maintainers; [ symphorien dominikh ];
   };
 }

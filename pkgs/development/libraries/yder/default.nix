@@ -4,13 +4,13 @@
 assert withSystemd -> systemd != null;
 stdenv.mkDerivation rec {
   pname = "yder";
-  version = "1.4.9";
+  version = "1.4.11";
 
   src = fetchFromGitHub {
     owner = "babelouest";
     repo = pname;
     rev = "v${version}";
-    sha256 = "06kxkq8ydgbb6b827hkvmaqd0irpal0n4hm96r3inq1bigz9gnvx";
+    sha256 = "0gm6l9y4jkxbq6vskdv1ivlq795ic28nhiyq21mzk3mx6j8klwip";
   };
 
   patches = [

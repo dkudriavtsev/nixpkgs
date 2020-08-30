@@ -8,11 +8,11 @@
 
 buildPythonPackage rec {
   pname = "google-cloud-videointelligence";
-  version = "1.12.1";
+  version = "1.15.0";
 
   src = fetchPypi {
     inherit pname version;
-    sha256 = "66d0a63d27e83656b1b4e0205d32725e4c58db174118badba164bb7d05a66981";
+    sha256 = "c2b4b3579196c0bb7301fbe1de7008ac5081f88afc0599a10ee79a5ade385922";
   };
 
   checkInputs = [ pytest mock ];
@@ -24,7 +24,7 @@ buildPythonPackage rec {
 
   meta = with stdenv.lib; {
     description = "Google Cloud Video Intelligence API client library";
-    homepage = https://github.com/GoogleCloudPlatform/google-cloud-python;
+    homepage = "https://github.com/GoogleCloudPlatform/google-cloud-python";
     license = licenses.asl20;
     maintainers = [ maintainers.costrouc ];
   };

@@ -24,7 +24,7 @@ import sys
 import tarfile
 import tempfile
 from io import BytesIO
-from typing import Dict, Optional
+from typing import Dict, Optional, Set, Any
 from urllib.request import urlopen
 
 COMPONENT_PREFIX = "homeassistant.components"
@@ -36,7 +36,9 @@ PKG_PREFERENCES = {
     # Use python3Packages.youtube-dl-light instead of python3Packages.youtube-dl
     "youtube-dl": "youtube-dl-light",
     "tensorflow-bin": "tensorflow",
+    "tensorflow-bin_2": "tensorflow",
     "tensorflowWithoutCuda": "tensorflow",
+    "tensorflow-build_2": "tensorflow",
 }
 
 
@@ -53,7 +55,7 @@ def get_version():
         return m.group(1)
 
 
-def parse_components(version="master"):
+def parse_components(version: str = "master"):
     components = {}
     with tempfile.TemporaryDirectory() as tmp:
         with urlopen(
@@ -61,14 +63,13 @@ def parse_components(version="master"):
         ) as response:
             tarfile.open(fileobj=BytesIO(response.read())).extractall(tmp)
         # Use part of a script from the Home Assistant codebase
-        sys.path.append(os.path.join(tmp, f"home-assistant-{version}"))
+        core_path = os.path.join(tmp, f"core-{version}")
+        sys.path.append(core_path)
         from script.hassfest.model import Integration
 
         integrations = Integration.load_dir(
             pathlib.Path(
-                os.path.join(
-                    tmp, f"home-assistant-{version}", "homeassistant/components"
-                )
+                os.path.join(core_path, "homeassistant/components")
             )
         )
         for domain in sorted(integrations):
@@ -78,10 +79,14 @@ def parse_components(version="master"):
 
 
 # Recursively get the requirements of a component and its dependencies
-def get_reqs(components, component):
-    requirements = set(components[component]["requirements"])
-    for dependency in components[component]["dependencies"]:
-        requirements.update(get_reqs(components, dependency))
+def get_reqs(components: Dict[str, Dict[str, Any]], component: str, processed: Set[str]) -> Set[str]:
+    requirements = set(components[component].get("requirements", []))
+    deps = components[component].get("dependencies", [])
+    deps.extend(components[component].get("after_dependencies", []))
+    processed.add(component)
+    for dependency in deps:
+        if dependency not in processed:
+            requirements.update(get_reqs(components, dependency, processed))
     return requirements
 
 
@@ -108,6 +113,10 @@ def name_to_attr_path(req: str, packages: Dict[str, Dict[str, str]]) -> Optional
     # instead of python-3.6-python-mpd2 inside Nixpkgs
     if req.startswith("python-") or req.startswith("python_"):
         names.append(req[len("python-") :])
+    # Add name variant without extra_require, e.g. samsungctl
+    # instead of samsungctl[websocket]
+    if req.endswith("]"):
+        names.append(req[:req.find("[")])
     for name in names:
         # treat "-" and "_" equally
         name = re.sub("[-_]", "[-_]", name)
@@ -141,7 +150,7 @@ def main() -> None:
     for component in sorted(components.keys()):
         attr_paths = []
         missing_reqs = []
-        reqs = sorted(get_reqs(components, component))
+        reqs = sorted(get_reqs(components, component, set()))
         for req in reqs:
             # Some requirements are specified by url, e.g. https://example.org/foobar#xyz==1.0.0
             # Therefore, if there's a "#" in the line, only take the part after it
@@ -168,9 +177,10 @@ def main() -> None:
         f.write("  components = {\n")
         for component, deps in build_inputs.items():
             available, missing = deps
-            f.write(f'    "{component}" = ps: with ps; [ ')
-            f.write(" ".join(available))
-            f.write("];")
+            f.write(f'    "{component}" = ps: with ps; [')
+            if available:
+                f.write(" " + " ".join(available))
+            f.write(" ];")
             if len(missing) > 0:
                 f.write(f" # missing inputs: {' '.join(missing)}")
             f.write("\n")

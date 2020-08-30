@@ -1,6 +1,6 @@
-#! @shell@
+#! @runtimeShell@
 
-if [ -x "@shell@" ]; then export SHELL="@shell@"; fi;
+if [ -x "@runtimeShell@" ]; then export SHELL="@runtimeShell@"; fi;
 
 set -e
 set -o pipefail
@@ -288,7 +288,10 @@ fi
 if [ "$action" = edit ]; then
     if [[ -z $flake ]]; then
         NIXOS_CONFIG=${NIXOS_CONFIG:-$(nix-instantiate --find-file nixos-config)}
-        exec "${EDITOR:-nano}" "$NIXOS_CONFIG"
+        if [[ -d $NIXOS_CONFIG ]]; then
+            NIXOS_CONFIG=$NIXOS_CONFIG/default.nix
+        fi
+        exec ${EDITOR:-nano} "$NIXOS_CONFIG"
     else
         exec nix edit "${lockFlags[@]}" -- "$flake#$flakeAttr"
     fi

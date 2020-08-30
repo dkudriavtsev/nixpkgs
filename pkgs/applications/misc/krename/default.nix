@@ -23,9 +23,11 @@ in mkDerivation rec {
 
   propagatedBuildInputs = [ kconfig kcrash kinit kjsembed ];
 
+  NIX_LDFLAGS = "-ltag";
+
   meta = with lib; {
     description = "A powerful batch renamer for KDE";
-    homepage = https://kde.org/applications/utilities/krename/;
+    homepage = "https://kde.org/applications/utilities/krename/";
     license = licenses.gpl2;
     maintainers = with maintainers; [ peterhoeg ];
     inherit (kconfig.meta) platforms;

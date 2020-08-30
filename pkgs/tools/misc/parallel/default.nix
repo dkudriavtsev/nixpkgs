@@ -1,12 +1,14 @@
 { fetchurl, stdenv, perl, makeWrapper, procps }:
 
 stdenv.mkDerivation rec {
-  name = "parallel-20200222";
+  name = "parallel-20200822";
 
   src = fetchurl {
     url = "mirror://gnu/parallel/${name}.tar.bz2";
-    sha256 = "077b72h2d191bmsb78fmzcynxj5mi5v3axmwwxz1d1q8xhv756r6";
+    sha256 = "02dy46g6f05p7s2qs8h6yg20p1zl3flxxf77n5jw74l3h1m24m4n";
   };
+
+  outputs = [ "out" "man" ];
 
   nativeBuildInputs = [ makeWrapper ];
   buildInputs = [ perl procps ];
@@ -40,6 +42,6 @@ stdenv.mkDerivation rec {
     homepage = "https://www.gnu.org/software/parallel/";
     license = licenses.gpl3Plus;
     platforms = platforms.all;
-    maintainers = with maintainers; [ pSub vrthra ];
+    maintainers = with maintainers; [ pSub vrthra tomberek ];
   };
 }

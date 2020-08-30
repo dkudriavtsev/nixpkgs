@@ -4,13 +4,13 @@
 
 stdenv.mkDerivation rec {
   pname = "p11-kit";
-  version = "0.23.20";
+  version = "0.23.21";
 
   src = fetchFromGitHub {
     owner = "p11-glue";
     repo = pname;
     rev = version;
-    sha256 = "00xxhzgd7cpin9nzwrrzykvhjwqg5l45p0cq2gv68y3sxq2p9q6y";
+    sha256 = "1w24brn8j3vwfp07p2hldw2ci06pk1cx1dvjk8jjxkccp20fk958";
   };
 
   outputs = [ "out" "dev"];
@@ -26,14 +26,16 @@ stdenv.mkDerivation rec {
   configureFlags = [
     "--sysconfdir=/etc"
     "--localstatedir=/var"
-    "--without-trust-paths"
-  ]; # TODO: store trust anchors in a directory common to Nix and NixOS
+    "--with-trust-paths=/etc/ssl/certs/ca-certificates.crt"
+  ];
 
   enableParallelBuilding = true;
 
   doCheck = !stdenv.isDarwin;
 
-  installFlags = [ "exampledir=\${out}/etc/pkcs11" ];
+  installFlags = [
+    "exampledir=${placeholder "out"}/etc/pkcs11"
+  ];
 
   meta = with stdenv.lib; {
     description = "Library for loading and sharing PKCS#11 modules";
@@ -42,7 +44,7 @@ stdenv.mkDerivation rec {
       Provides a standard configuration setup for installing
       PKCS#11 modules in such a way that they're discoverable.
     '';
-    homepage = https://p11-glue.github.io/p11-glue/p11-kit.html;
+    homepage = "https://p11-glue.github.io/p11-glue/p11-kit.html";
     platforms = platforms.all;
     license = licenses.bsd3;
   };

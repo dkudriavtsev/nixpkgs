@@ -1,17 +1,17 @@
-{ lib, buildGoModule, fetchFromGitHub, writeText, runtimeShell, ncurses, }:
+{ lib, buildGoModule, fetchFromGitHub, writeText, runtimeShell, ncurses, perl }:
 
 buildGoModule rec {
   pname = "fzf";
-  version = "0.20.0";
+  version = "0.22.0";
 
   src = fetchFromGitHub {
     owner = "junegunn";
     repo = pname;
     rev = version;
-    sha256 = "02zy3c4k84rzqdkaf04idbj10v286hi0ix1xl2qsz1wrblh168w8";
+    sha256 = "0n0cy5q2r3dm1a3ivlzrv9c5d11awxlqim5b9x8zc85dlr73n35l";
   };
 
-  modSha256 = "12lnv8b96adpcg9qfizcyd9nxz590nxd82xch6ij719zlqyps143";
+  vendorSha256 = "1c2iz28hjrw9rig9a6r27wd8clycdhi8fgs3da91c63w4qi140zm";
 
   outputs = [ "out" "man" ];
 
@@ -27,9 +27,14 @@ buildGoModule rec {
         echo "Failed to replace vim base_dir path with $out"
         exit 1
     fi
-  '';
 
-  doCheck = true;
+    # Has a sneaky dependency on perl
+    # Include first args to make sure we're patching the right thing
+    substituteInPlace shell/key-bindings.zsh \
+      --replace " perl -ne " " ${perl}/bin/perl -ne "
+    substituteInPlace shell/key-bindings.bash \
+      --replace " perl -n " " ${perl}/bin/perl -n "
+  '';
 
   preInstall = ''
     mkdir -p $out/share/fish/{vendor_functions.d,vendor_conf.d}
@@ -60,7 +65,7 @@ buildGoModule rec {
     homepage = "https://github.com/junegunn/fzf";
     description = "A command-line fuzzy finder written in Go";
     license = licenses.mit;
-    maintainers = with maintainers; [ filalex77 ma27 ];
+    maintainers = with maintainers; [ filalex77 ma27 zowoq ];
     platforms = platforms.unix;
   };
 }

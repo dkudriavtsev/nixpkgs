@@ -8,7 +8,7 @@ let
 common = { scalaVersion, sha256 }:
 stdenv.mkDerivation rec {
   pname = "ammonite";
-  version = "1.7.4";
+  version = "2.2.0";
 
   src = fetchurl {
     url = "https://github.com/lihaoyi/Ammonite/releases/download/${version}/${scalaVersion}-${version}";
@@ -33,13 +33,13 @@ stdenv.mkDerivation rec {
         with a lot of ergonomic improvements and configurability
         that may be familiar to people coming from IDEs or other REPLs such as IPython or Zsh.
     '';
-    homepage = http://www.lihaoyi.com/Ammonite/;
+    homepage = "http://www.lihaoyi.com/Ammonite/";
     license = licenses.mit;
     platforms = platforms.all;
     maintainers = [ maintainers.nequissimus ];
   };
 };
 in {
-  ammonite_2_12 = common { scalaVersion = "2.12"; sha256 = "0d2xjhxrly4cv5fpjv1i0a74ayij7c2x5sb6lsgzxpq7jj0bk1m6"; };
-  ammonite_2_13 = common { scalaVersion = "2.13"; sha256 = "0hmdizzf8l8i07vdfik24iby39xg1vjfp1cwgjpbcmxv8klf50b0"; };
+  ammonite_2_12 = common { scalaVersion = "2.12"; sha256 = "0nclfqwy3jfn1680z1hd0zzmc0b79wpvx6gn1jnm19aq7qcvh5zp"; };
+  ammonite_2_13 = common { scalaVersion = "2.13"; sha256 = "104bnahn382sb6vwjvchsg0jrnkkwjn08rfh0g5ra7lwhgcj2719"; };
 }

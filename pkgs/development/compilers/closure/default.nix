@@ -2,11 +2,11 @@
 
 stdenv.mkDerivation rec {
   pname = "closure-compiler";
-  version = "20200224";
+  version = "20200719";
 
   src = fetchurl {
     url = "https://dl.google.com/closure-compiler/compiler-${version}.tar.gz";
-    sha256 = "0qlnpnd64rrlyz7ybdnp7zk5ns2s0071zs1fcrcq9ba2lnhfbmmb";
+    sha256 = "18095i98mk5kc1vpaf6gvmvhiyl2x4zrcwd7ix5l98jydldiz7wx";
   };
 
   sourceRoot = ".";

@@ -4,21 +4,21 @@ let
   generic = { subPackages, pname, postInstall ? "" }:
     buildGoModule rec {
       inherit pname;
-      version = "5.14.1";
-      shortRev = "1f6d16b"; # for internal version info
-
-      goPackagePath = "github.com/sensu/sensu-go";
+      version = "5.21.1";
+      shortRev = "3a1ac58"; # for internal version info
 
       src = fetchFromGitHub {
         owner = "sensu";
         repo = "sensu-go";
         rev = "v${version}";
-        sha256 = "1fhvw2hrn2zqpz3ypsx6i1zrn83pdifvsyzpbhzxmff6l9a290bq";
+        sha256 = "1vgb25d546dh5sassclym077vmvvl1wj4ndd2084ngvify7dp1a9";
       };
 
       inherit subPackages postInstall;
 
-      modSha256 = "0c0cj0ylhifyb7l9kjmgdlfzcz8528fzw8kr3c5y7j5h6pih06sy";
+  vendorSha256 = "06yfaj9k5n3jw8a142sscaqrvdw2lq51v884lp65wjdwy5c3jbba";
+
+  doCheck = false;
 
       buildFlagsArray = let
         versionPkg = "github.com/sensu/sensu-go/version";
@@ -29,7 +29,7 @@ let
       '';
 
       meta = {
-        homepage = https://sensu.io;
+        homepage = "https://sensu.io";
         description = "Open source monitoring tool for ephemeral infrastructure & distributed applications";
         license = lib.licenses.mit;
         maintainers = with lib.maintainers; [ thefloweringash ];

@@ -1,12 +1,13 @@
-{ lib, fetchPypi, buildPythonPackage, pytest } :
+{ lib, fetchPypi, buildPythonPackage, isPy27, pytest } :
 
 buildPythonPackage rec {
   pname = "inflection";
-  version = "0.3.1";
+  version = "0.5.0";
+  disabled = isPy27;
 
   src = fetchPypi {
    inherit pname version;
-   sha256 = "1jhnxgnw8y3mbzjssixh6qkc7a3afc4fygajhqrqalnilyvpzshq";
+   sha256 = "f576e85132d34f5bf7df5183c2c6f94cfb32e528f53065345cf71329ba0b8924";
   };
 
   checkInputs = [ pytest ];
@@ -14,7 +15,7 @@ buildPythonPackage rec {
   checkPhase = ''pytest >/dev/null || pytest'';
 
   meta = {
-   homepage = https://github.com/jpvanhal/inflection;
+   homepage = "https://github.com/jpvanhal/inflection";
    description = "A port of Ruby on Rails inflector to Python";
    maintainers = with lib.maintainers; [ NikolaMandic ilya-kolpakov ];
    license = lib.licenses.mit;

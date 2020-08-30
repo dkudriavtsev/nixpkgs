@@ -2,13 +2,13 @@
 
 stdenv.mkDerivation rec {
   pname = "parlatype";
-  version = "1.6.2";
+  version = "2.1";
 
   src = fetchFromGitHub {
     owner  = "gkarsay";
     repo   = pname;
     rev    = "v${version}";
-    sha256 = "157423f40l8nd5da6y0qjmg4l3125zailp98w2hda3mxxn1j5ix3";
+    sha256 = "1k53q0kbwpnbgyr0lmfzf5sm4f93d8nbjrzdz9pdhzpxgihndg25";
   };
 
   nativeBuildInputs = [
@@ -61,7 +61,7 @@ stdenv.mkDerivation rec {
       It plays audio sources to transcribe them in your favourite text application.
       It’s intended to be useful for journalists, students, scientists and whoever needs to transcribe audio files.
     '';
-    homepage = https://gkarsay.github.io/parlatype/;
+    homepage = "https://gkarsay.github.io/parlatype/";
     license = licenses.gpl3Plus;
     maintainers = [ maintainers.melchips ];
     platforms = platforms.linux;

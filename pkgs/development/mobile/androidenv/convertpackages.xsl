@@ -28,7 +28,7 @@
 
 {
   <!-- Convert all remote packages -->
-  <xsl:for-each select="remotePackage"><xsl:sort select="@path" />
+  <xsl:for-each select="remotePackage[not(contains(@path, ';') and substring-after(@path, ';') = 'latest')]"><xsl:sort select="@path" />
 
   <!-- Extract the package name from the path -->
   <xsl:variable name="name">
@@ -98,13 +98,13 @@
     archives = {
       <xsl:for-each select="archives/archive[not(host-os)]">
         all = fetchurl {
-          url = <xsl:call-template name="repository-url"/>;
+          url = !<xsl:call-template name="repository-url"/>";
           sha1 = "<xsl:value-of select="complete/checksum" />";
         };
       </xsl:for-each>
       <xsl:for-each select="archives/archive[host-os and not(host-os = 'windows')]">
         <xsl:value-of select="host-os" /> = fetchurl {
-        url = <xsl:call-template name="repository-url"/>;
+        url = "<xsl:call-template name="repository-url"/>";
         sha1 = "<xsl:value-of select="complete/checksum" />";
       };
       </xsl:for-each>

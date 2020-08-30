@@ -36,7 +36,7 @@ let
     set -euo pipefail
 
     declare -A seen
-    declare -a left
+    left=()
 
     patchelf="${pkgs.buildPackages.patchelf}/bin/patchelf"
 
@@ -48,7 +48,7 @@ let
       done
     }
 
-    add_needed $1
+    add_needed "$1"
 
     while [ ''${#left[@]} -ne 0 ]; do
       next=''${left[0]}
@@ -87,7 +87,9 @@ let
   # copy what we need.  Instead of using statically linked binaries,
   # we just copy what we need from Glibc and use patchelf to make it
   # work.
-  extraUtils = pkgs.runCommandCC "extra-utils"
+  extraUtils = let
+    # Use lvm2 without udev support, which is the same lvm2 we already have in the closure anyways
+    lvm2 = pkgs.lvm2.override { udev = null; }; in pkgs.runCommandCC "extra-utils"
     { nativeBuildInputs = [pkgs.buildPackages.nukeReferences];
       allowedReferences = [ "out" ]; # prevent accidents like glibc being included in the initrd
     }
@@ -111,20 +113,21 @@ let
       copy_bin_and_libs ${pkgs.utillinux}/sbin/blkid
 
       # Copy dmsetup and lvm.
-      copy_bin_and_libs ${pkgs.lvm2}/sbin/dmsetup
-      copy_bin_and_libs ${pkgs.lvm2}/sbin/lvm
+      copy_bin_and_libs ${getBin lvm2}/bin/dmsetup
+      copy_bin_and_libs ${getBin lvm2}/bin/lvm
 
       # Add RAID mdadm tool.
       copy_bin_and_libs ${pkgs.mdadm}/sbin/mdadm
       copy_bin_and_libs ${pkgs.mdadm}/sbin/mdmon
 
       # Copy udev.
-      copy_bin_and_libs ${udev}/lib/systemd/systemd-udevd
-      copy_bin_and_libs ${udev}/lib/systemd/systemd-sysctl
       copy_bin_and_libs ${udev}/bin/udevadm
+      copy_bin_and_libs ${udev}/lib/systemd/systemd-sysctl
       for BIN in ${udev}/lib/udev/*_id; do
         copy_bin_and_libs $BIN
       done
+      # systemd-udevd is only a symlink to udevadm these days
+      ln -sf udevadm $out/bin/systemd-udevd
 
       # Copy modprobe.
       copy_bin_and_libs ${pkgs.kmod}/bin/kmod
@@ -137,12 +140,17 @@ let
       ''}
 
       # Copy secrets if needed.
+      #
+      # TODO: move out to a separate script; see #85000.
       ${optionalString (!config.boot.loader.supportsInitrdSecrets)
           (concatStringsSep "\n" (mapAttrsToList (dest: source:
              let source' = if source == null then dest else source; in
                ''
                   mkdir -p $(dirname "$out/secrets/${dest}")
-                  cp -a ${source'} "$out/secrets/${dest}"
+                  # Some programs (e.g. ssh) doesn't like secrets to be
+                  # symlinks, so we use `cp -L` here to match the
+                  # behaviour when secrets are natively supported.
+                  cp -Lr ${source'} "$out/secrets/${dest}"
                 ''
           ) config.boot.initrd.secrets))
        }
@@ -230,7 +238,7 @@ let
             --replace cdrom_id ${extraUtils}/bin/cdrom_id \
             --replace ${pkgs.coreutils}/bin/basename ${extraUtils}/bin/basename \
             --replace ${pkgs.utillinux}/bin/blkid ${extraUtils}/bin/blkid \
-            --replace ${pkgs.lvm2}/sbin ${extraUtils}/bin \
+            --replace ${getBin pkgs.lvm2}/bin ${extraUtils}/bin \
             --replace ${pkgs.mdadm}/sbin ${extraUtils}/sbin \
             --replace ${pkgs.bash}/bin/sh ${extraUtils}/bin/sh \
             --replace ${udev} ${extraUtils}
@@ -369,7 +377,8 @@ let
           ) config.boot.initrd.secrets)
          }
 
-        (cd "$tmp" && find . | cpio -H newc -o) | gzip >>"$1"
+        (cd "$tmp" && find . -print0 | sort -z | cpio -o -H newc -R +0:+0 --reproducible --null) | \
+          ${config.boot.initrd.compressor} >> "$1"
       '';
 
 in
@@ -387,6 +396,17 @@ in
         Specify here the device where the file resides.
         You should also use <varname>boot.kernelParams</varname> to specify
         <literal><replaceable>resume_offset</replaceable></literal>.
+      '';
+    };
+
+    boot.initrd.enable = mkOption {
+      type = types.bool;
+      default = !config.boot.isContainer;
+      defaultText = "!config.boot.isContainer";
+      description = ''
+        Whether to enable the NixOS initial RAM disk (initrd). This may be
+        needed to perform some initialisation tasks (like mounting
+        network/encrypted file systems) before continuing the boot process.
       '';
     };
 
@@ -501,8 +521,7 @@ in
     };
 
     boot.initrd.secrets = mkOption
-      { internal = true;
-        default = {};
+      { default = {};
         type = types.attrsOf (types.nullOr types.path);
         description =
           ''
@@ -544,10 +563,12 @@ in
           default = false;
           type = types.bool;
           description = ''
-            If set, this file system will be mounted in the initial
-            ramdisk.  By default, this applies to the root file system
-            and to the file system containing
-            <filename>/nix/store</filename>.
+            If set, this file system will be mounted in the initial ramdisk.
+            Note that the file system will always be mounted in the initial
+            ramdisk if its mount point is one of the following:
+            ${concatStringsSep ", " (
+              forEach utils.pathsNeededForBoot (i: "<filename>${i}</filename>")
+            )}.
           '';
         };
       });
@@ -555,7 +576,7 @@ in
 
   };
 
-  config = mkIf (!config.boot.isContainer) {
+  config = mkIf config.boot.initrd.enable {
     assertions = [
       { assertion = any (fs: fs.mountPoint == "/") fileSystems;
         message = "The ‘fileSystems’ option does not specify your root file system.";
@@ -564,6 +585,25 @@ in
           resumeDevice == "" || builtins.substring 0 1 resumeDevice == "/";
         message = "boot.resumeDevice has to be an absolute path."
           + " Old \"x:y\" style is no longer supported.";
+      }
+      # TODO: remove when #85000 is fixed
+      { assertion = !config.boot.loader.supportsInitrdSecrets ->
+          all (source:
+            builtins.isPath source ||
+            (builtins.isString source && hasPrefix builtins.storeDir source))
+          (attrValues config.boot.initrd.secrets);
+        message = ''
+          boot.loader.initrd.secrets values must be unquoted paths when
+          using a bootloader that doesn't natively support initrd
+          secrets, e.g.:
+
+            boot.initrd.secrets = {
+              "/etc/secret" = /path/to/secret;
+            };
+
+          Note that this will result in all secrets being stored
+          world-readable in the Nix store!
+        '';
       }
     ];
 

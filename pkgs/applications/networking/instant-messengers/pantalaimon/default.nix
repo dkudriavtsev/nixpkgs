@@ -1,6 +1,7 @@
-{ lib, stdenv, buildPythonApplication, fetchPypi, pythonOlder,
+{ lib, stdenv, buildPythonApplication, fetchFromGitHub, pythonOlder,
   attrs, aiohttp, appdirs, click, keyring, Logbook, peewee, janus,
   prompt_toolkit, matrix-nio, dbus-python, pydbus, notify2, pygobject3,
+  setuptools,
 
   pytest, faker, pytest-aiohttp, aioresponses,
 
@@ -9,13 +10,16 @@
 
 buildPythonApplication rec {
   pname = "pantalaimon";
-  version = "0.4";
+  version = "0.6.5";
 
   disabled = pythonOlder "3.6";
 
-  src = fetchPypi {
-    inherit pname version;
-    sha256 = "1canj9w72wh1rcw6fivrvaahpxy13gb6gh1k8nss6bgixalvnq9m";
+  # pypi tarball miss tests
+  src = fetchFromGitHub {
+    owner = "matrix-org";
+    repo = pname;
+    rev = version;
+    sha256 = "1pjrq71fkpvsc79nwhxhwjkqvqhj5wsnnwvsgslghaajdaw3n6wd";
   };
 
   propagatedBuildInputs = [
@@ -29,6 +33,7 @@ buildPythonApplication rec {
     matrix-nio
     peewee
     prompt_toolkit
+    setuptools
   ] ++ lib.optional enableDbusUi [
       dbus-python
       notify2

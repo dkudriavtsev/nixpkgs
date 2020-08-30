@@ -1,17 +1,17 @@
-{ stdenv, fetchurl, getopt, makeWrapper, utillinux }:
+{ stdenv, fetchurl, getopt, makeWrapper, utillinux, gperf }:
 
 stdenv.mkDerivation rec {
   pname = "libseccomp";
-  version = "2.4.2";
+  version = "2.5.0";
 
   src = fetchurl {
     url = "https://github.com/seccomp/libseccomp/releases/download/v${version}/libseccomp-${version}.tar.gz";
-    sha256 = "0nsq81acrbkdr8zairxbwa33bj2a6126npp76b4srjl472sjfkxm";
+    sha256 = "1wql62cg8f95cwpy057cl764nni9g4sdn5lqj68x22kjs8w71yhz";
   };
 
   outputs = [ "out" "lib" "dev" "man" ];
 
-  buildInputs = [ getopt makeWrapper ];
+  buildInputs = [ getopt makeWrapper gperf ];
 
   patchPhase = ''
     patchShebangs .
@@ -25,13 +25,14 @@ stdenv.mkDerivation rec {
 
   meta = with stdenv.lib; {
     description = "High level library for the Linux Kernel seccomp filter";
-    homepage    = "https://github.com/seccomp/libseccomp";
-    license     = licenses.lgpl21;
-    platforms   = platforms.linux;
+    homepage = "https://github.com/seccomp/libseccomp";
+    license = licenses.lgpl21;
+    platforms = platforms.linux;
     badPlatforms = [
       "alpha-linux"
-      "riscv64-linux" "riscv32-linux"
-      "sparc-linux" "sparc64-linux"
+      "riscv32-linux"
+      "sparc-linux"
+      "sparc64-linux"
     ];
     maintainers = with maintainers; [ thoughtpolice ];
   };

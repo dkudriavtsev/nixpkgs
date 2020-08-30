@@ -5,11 +5,11 @@
 
 buildPythonPackage rec {
   pname = "xml2rfc";
-  version = "2.37.3";
+  version = "2.47.0";
 
   src = fetchPypi {
     inherit pname version;
-    sha256 = "4ae4e99a4b482caac89d8ffd93d16a4510db36907475b1879713a1dc885646ad";
+    sha256 = "7f621ed0e5a30c2b67c0e50778627b7a35e1ccfea9db19ea89b4c72a8faf42c0";
   };
 
   propagatedBuildInputs = [
@@ -36,7 +36,7 @@ buildPythonPackage rec {
 
   meta = with lib; {
     description = "Tool generating IETF RFCs and drafts from XML sources";
-    homepage = https://tools.ietf.org/tools/xml2rfc/trac/;
+    homepage = "https://tools.ietf.org/tools/xml2rfc/trac/";
     # Well, parts might be considered unfree, if being strict; see:
     # http://metadata.ftp-master.debian.org/changelogs/non-free/x/xml2rfc/xml2rfc_2.9.6-1_copyright
     license = licenses.bsd3;

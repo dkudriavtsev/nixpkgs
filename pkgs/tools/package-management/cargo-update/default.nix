@@ -2,36 +2,51 @@
 , rustPlatform
 , fetchFromGitHub
 , cmake
+, pkg-config
+, installShellFiles
+, ronn
 , curl
 , libgit2
 , libssh2
 , openssl
-, pkg-config
-, zlib }:
+, Security
+, zlib
+}:
 
 rustPlatform.buildRustPackage rec {
   pname = "cargo-update";
-  version = "2.5.0";
+  version = "4.1.1";
 
   src = fetchFromGitHub {
     owner = "nabijaczleweli";
     repo = pname;
     rev = "v${version}";
-    sha256 = "143aczay7i3zbhbvv4cjf6hns5w8j52rfdaq8ff0r8v3qghd2972";
+    sha256 = "03yfn6jq33mykk2cicx54cpddilp62pb5ah75n96k1mwy7c46r6g";
   };
 
-  cargoPatches = [ ./cargo-lock.patch ];
-  cargoSha256 = "0mxc752hmd7r29camq4f4qzwx0w008rqlq07j2r26z4ygvlrkc3a";
+  cargoPatches = [ ./0001-Generate-lockfile-for-cargo-update-v4.1.1.patch ];
+  cargoSha256 = "1yaawp015gdnlfqkdmqsf95gszz0h5j1vpfjh763y7kk0bp7zswl";
 
-  nativeBuildInputs = [ cmake ];
-  buildInputs = [ libgit2 libssh2 openssl pkg-config zlib ]
-    ++ stdenv.lib.optional stdenv.isDarwin curl;
+  nativeBuildInputs = [ cmake installShellFiles pkg-config ronn ];
+
+  buildInputs = [ libgit2 libssh2 openssl zlib ]
+    ++ stdenv.lib.optionals stdenv.isDarwin [ curl Security ];
+
+  postBuild = ''
+    # Man pages contain non-ASCII, so explicitly set encoding to UTF-8.
+    HOME=$TMPDIR \
+    RUBYOPT="-E utf-8:utf-8" \
+      ronn -r --organization="cargo-update developers" man/*.md
+  '';
+
+  postInstall = ''
+    installManPage man/*.1
+  '';
 
   meta = with stdenv.lib; {
     description = "A cargo subcommand for checking and applying updates to installed executables";
     homepage = "https://github.com/nabijaczleweli/cargo-update";
     license = licenses.mit;
-    maintainers = with maintainers; [ gerschtli filalex77 ];
-    platforms = platforms.all;
+    maintainers = with maintainers; [ gerschtli filalex77 johntitor ];
   };
 }

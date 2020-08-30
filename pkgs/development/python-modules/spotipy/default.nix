@@ -1,15 +1,23 @@
-{ stdenv, buildPythonPackage, fetchPypi, requests }:
+{ stdenv, buildPythonPackage, fetchPypi, requests, six, mock }:
 
 buildPythonPackage rec {
   pname = "spotipy";
-  version = "2.9.0";
+  version = "2.13.0";
 
   src = fetchPypi {
     inherit pname version;
-    sha256 = "163z3j0sd9a7cc9pv9hcrh230gisvvi2fxabh1f6nzhfr8avrncr";
+    sha256 = "d1a85b8831ed60d2290ab9bbba289c548fb9680889757252c02dab2f2327d865";
   };
 
-  propagatedBuildInputs = [ requests ];
+  propagatedBuildInputs = [ requests six ];
+  checkInputs = [ mock ];
+
+  preConfigure = ''
+    substituteInPlace setup.py \
+      --replace "mock==2.0.0" "mock"
+  '';
+
+  pythonImportsCheck = [ "spotipy" ];
 
   meta = with stdenv.lib; {
     homepage = "https://spotipy.readthedocs.org/";

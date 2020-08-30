@@ -26,7 +26,9 @@ let
 
   darcs-to-git = callPackage ./darcs-to-git { };
 
-  delta = callPackage ./delta { };
+  delta = callPackage ./delta {
+    inherit (darwin.apple_sdk.frameworks) Security;
+  };
 
   diff-so-fancy = callPackage ./diff-so-fancy { };
 
@@ -61,12 +63,16 @@ let
 
   git-annex-utils = callPackage ./git-annex-utils { };
 
+  git-brunch = pkgs.haskellPackages.git-brunch;
+
   git-appraise = callPackage ./git-appraise {};
 
   git-bug = callPackage ./git-bug { };
 
   # support for bugzilla
   git-bz = callPackage ./git-bz { };
+
+  git-cinnabar = callPackage ./git-cinnabar { };
 
   git-codeowners = callPackage ./git-codeowners { };
 
@@ -80,11 +86,19 @@ let
     inherit (darwin.apple_sdk.frameworks) CoreFoundation Security;
   };
 
+  git-doc = lib.addMetaAttrs {
+    description = "Additional documentation for Git";
+    longDescription = ''
+      This package contains additional documentation (HTML and text files) that
+      is referenced in the man pages of Git.
+    '';
+  } gitFull.doc;
+
   git-extras = callPackage ./git-extras { };
 
   git-fame = callPackage ./git-fame {};
 
-  git-fast-export = callPackage ./fast-export { };
+  git-fast-export = callPackage ./fast-export { mercurial = mercurial_4; };
 
   git-filter-repo = callPackage ./git-filter-repo {
     pythonPackages = python3Packages;
@@ -134,11 +148,19 @@ let
 
   git-subrepo = callPackage ./git-subrepo { };
 
+  git-subset = callPackage ./git-subset {
+    inherit (darwin.apple_sdk.frameworks) Security;
+  };
+
   git-subtrac = callPackage ./git-subtrac { };
 
   git-sync = callPackage ./git-sync { };
 
   git-test = callPackage ./git-test { };
+
+  git-trim = callPackage ./git-trim {
+    inherit (darwin.apple_sdk.frameworks) Security;
+  };
 
   git-workspace = callPackage ./git-workspace {
     inherit (darwin.apple_sdk.frameworks) Security;
@@ -161,25 +183,35 @@ let
 
   gita = python3Packages.callPackage ./gita {};
 
+  gitbatch = callPackage ./gitbatch { };
+
   gitflow = callPackage ./gitflow { };
+
+  gitin = callPackage ./gitin { };
 
   gitstatus = callPackage ./gitstatus { };
 
+  gitui = callPackage ./gitui {
+    inherit (darwin.apple_sdk.frameworks) Security;
+  };
+
   grv = callPackage ./grv { };
 
-  hub = callPackage ./hub {
-    inherit (darwin) Security;
-  };
+  hub = callPackage ./hub { };
 
   lab = callPackage ./lab { };
 
   lefthook = callPackage ./lefthook { };
+
+  legit = callPackage ./legit { };
 
   pass-git-helper = python3Packages.callPackage ./pass-git-helper { };
 
   pre-commit = pkgs.python3Packages.toPythonApplication pkgs.python3Packages.pre-commit;
 
   qgit = qt5.callPackage ./qgit { };
+
+  scmpuff = callPackage ./scmpuff { };
 
   stgit = callPackage ./stgit { };
 
@@ -205,6 +237,7 @@ let
   # aliases
   darcsToGit = darcs-to-git;
   gitAnnex = git-annex;
+  gitBrunch = git-brunch;
   gitFastExport = git-fast-export;
   gitRemoteGcrypt = git-remote-gcrypt;
   svn_all_fast_export = svn-all-fast-export;

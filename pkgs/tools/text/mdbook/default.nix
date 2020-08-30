@@ -2,24 +2,23 @@
 
 rustPlatform.buildRustPackage rec {
   pname = "mdbook";
-  version = "0.3.5";
+  version = "0.4.2";
 
   src = fetchFromGitHub {
     owner = "rust-lang-nursery";
     repo = "mdBook";
     rev = "v${version}";
-    sha256 = "0gcrv54iswphzxxkmak1c7pmmpakiri6jk50j4bxrsplwjr76f7n";
+    sha256 = "0rkl5k7a9a0vx06jqvbgki2bwag0ar2pcbg3qi88xnjnnmphzpzj";
   };
 
-  cargoSha256 = "12i9w9dgji36yvvdks0vkjjkh32nbnhz76sgrl2827pj49h9vnn0";
+  cargoSha256 = "1zhlb6wnjnayq833h62nm3ndlhiz1qajw8w5ccc88b8q8m4ipd7c";
 
   buildInputs = stdenv.lib.optionals stdenv.isDarwin [ CoreServices ];
 
   meta = with stdenv.lib; {
     description = "Create books from MarkDown";
-    homepage = https://github.com/rust-lang-nursery/mdbook;
+    homepage = "https://github.com/rust-lang-nursery/mdbook";
     license = [ licenses.mpl20 ];
     maintainers = [ maintainers.havvy ];
-    platforms = platforms.all;
   };
 }

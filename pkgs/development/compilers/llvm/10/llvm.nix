@@ -16,8 +16,9 @@
 , enableSharedLibraries ? true
 , enablePFM ? !(stdenv.isDarwin
   || stdenv.isAarch64 # broken for Ampere eMAG 8180 (c2.large.arm on Packet) #56245
+  || stdenv.isAarch32 # broken for the armv7l builder
 )
-, enablePolly ? false
+, enablePolly ? true
 }:
 
 let
@@ -31,8 +32,8 @@ in stdenv.mkDerivation (rec {
   pname = "llvm";
   inherit version;
 
-  src = fetch pname "01azqqygm83s6l1g35kqkc7da06dkc8jxpb4zsd420lmhfhw4gws";
-  polly_src = fetch "polly" "00nvnh0jhi1s5gcyfnb30h9g2j18z79kipiy878bkawg53f4z2xf";
+  src = fetch pname "1wydhbp9kyjp5y0rc627imxgkgqiv3dfirbqil9dgpnbaw5y7n65";
+  polly_src = fetch "polly" "0nm2d8niz47yjsa3r17v3p13b70igkd338ib8191znr1dfw0pyyj";
 
   unpackPhase = ''
     unpackFile $src
@@ -80,6 +81,7 @@ in stdenv.mkDerivation (rec {
     rm test/DebugInfo/X86/convert-debugloc.ll
     rm test/DebugInfo/X86/convert-inlined.ll
     rm test/DebugInfo/X86/convert-linked.ll
+    rm test/DebugInfo/X86/debug_addr.ll
     rm test/tools/dsymutil/X86/op-convert.test
   '' + optionalString (stdenv.hostPlatform.system == "armv6l-linux") ''
     # Seems to require certain floating point hardware (NEON?)
@@ -154,9 +156,10 @@ in stdenv.mkDerivation (rec {
 
   enableParallelBuilding = true;
 
+  requiredSystemFeatures = [ "big-parallel" ];
   meta = {
     description = "Collection of modular and reusable compiler and toolchain technologies";
-    homepage    = http://llvm.org/;
+    homepage    = "https://llvm.org/";
     license     = stdenv.lib.licenses.ncsa;
     maintainers = with stdenv.lib.maintainers; [ lovek323 raskin dtzWill ];
     platforms   = stdenv.lib.platforms.all;
