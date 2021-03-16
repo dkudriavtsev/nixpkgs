@@ -30072,6 +30072,20 @@ in
     inherit pkgs;
   };
 
+  discord-native-electron = import ../applications/networking/instant-messengers/discord-native-electron {
+    inherit pkgs;
+  };
+
+  discord-ptb-native-electron = import ../applications/networking/instant-messengers/discord-native-electron {
+    basePkg = pkgs.discord-ptb;
+    inherit pkgs;
+  };
+
+  discord-canary-native-electron = import ../applications/networking/instant-messengers/discord-native-electron {
+    basePkg = pkgs.discord-canary;
+    inherit pkgs;
+  };
+
   golden-cheetah = libsForQt514.callPackage ../applications/misc/golden-cheetah {};
 
   linkchecker = callPackage ../tools/networking/linkchecker { };
